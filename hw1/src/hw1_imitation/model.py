@@ -75,7 +75,7 @@ class MSEPolicy(BasePolicy):
 class FlowMatchingPolicy(BasePolicy):
     """Predicts action chunks with a flow matching loss."""
 
-    ### TODO: IMPLEMENT FlowMatchingPolicy HERE ###
+    ### IMPLEMENT FlowMatchingPolicy HERE ###
     def __init__(
         self,
         state_dim: int,
