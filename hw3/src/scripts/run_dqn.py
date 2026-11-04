@@ -86,8 +86,8 @@ def run_training_loop(config: dict, logger: Logger, args: argparse.Namespace):
     for step in tqdm.trange(config["total_steps"], dynamic_ncols=True):
         epsilon = exploration_schedule.value(step)
 
-        # TODO(Section 2.4): Compute action
-        action = None
+        # (Section 2.4): Compute action
+        action = agent.get_action(observation,epsilon)
         # ENDTODO
 
         next_observation, reward, done, info = env.step(action)
@@ -127,14 +127,21 @@ def run_training_loop(config: dict, logger: Logger, args: argparse.Namespace):
 
         # Main DQN training loop
         if step >= config["learning_starts"]:
-            # TODO(Section 2.4): Sample config["batch_size"] samples from the replay buffer
-            batch = None
+            # (Section 2.4): Sample config["batch_size"] samples from the replay buffer
+            batch = replay_buffer.sample(config["batch_size"])
             # ENDTODO
 
             batch = ptu.from_numpy(batch)
 
-            # TODO(Section 2.4): Train the agent.
-            update_info = None
+            # (Section 2.4): Train the agent.
+            update_info = agent.update(
+                obs=batch["observations"],
+                action=batch["actions"],
+                reward=batch["rewards"],
+                next_obs=batch["next_observations"],
+                done=batch["dones"],
+                step=step,
+            )
             # ENDTODO
 
             # Logging code
@@ -214,7 +221,7 @@ def make_logger(config: dict, args: argparse.Namespace) -> Logger:
         project=args.wandb_project,
         group=config["log_name"],
         name=logdir.split("/")[-1],
-        mode="online",
+        mode="offline",
         config=wandb_config,
     )
 
