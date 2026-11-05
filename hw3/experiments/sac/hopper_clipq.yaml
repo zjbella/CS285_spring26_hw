@@ -5,7 +5,7 @@ hidden_size: 256
 num_layers: 3
 actor_learning_rate: 0.0003
 critic_learning_rate: 0.0003
-total_steps: 500000
+total_steps: 50000
 random_steps: 5000
 training_starts: 10000
 batch_size: 256
