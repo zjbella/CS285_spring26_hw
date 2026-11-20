@@ -182,7 +182,7 @@ def build_algo(cfg: TrainConfig):
 
 
 def compute_group_advantages(rewards: torch.Tensor, group_size: int, eps: float = 1e-6) -> torch.Tensor:
-    # TODO(student): implement group-relative advantage normalization.
+    # (student): implement group-relative advantage normalization.
     # rewards is a flat vector of length N = batch_size * group_size in prompt-major
     # order, so the group_size sampled completions for the same prompt are contiguous.
     #
@@ -202,16 +202,37 @@ def compute_group_advantages(rewards: torch.Tensor, group_size: int, eps: float 
     #   of your choice for that group
     #
     # Return a flat tensor with the same shape/order as rewards.
-    raise NotImplementedError("student TODO: compute_group_advantages")
+    N = rewards.numel()
+    if group_size <= 1 or N % group_size == 0 :
+        return torch.zeros_like(rewards)
+
+    num_group = N / group_size
+    r = rewards.reshape(num_group,group_size)
+
+    mean = r.mean(dim = 1, keepdim=True)
+    std = r.std(dim = 1,unbiased=False,keepdim=True)
+
+    adv = (r-mean)/(std+eps)
+
+    zero_std_mask = std.squeeze(1) < eps                 
+    if zero_std_mask.any():
+        adv[zero_std_mask] = 0.0
+
+    return adv.reshape(-1)
 
 
 def maybe_normalize_advantages(advantages: torch.Tensor, enabled: bool, eps: float = 1e-6) -> torch.Tensor:
-    # TODO(student): if enabled, z-score normalize the full advantage vector:
+    # (student): if enabled, z-score normalize the full advantage vector:
     #   A' = (A - mean(A)) / (std(A) + eps)
     # Again use the population standard deviation (unbiased=False).
     # Otherwise return A unchanged.
     # Keep the output shape identical to the input shape.
-    raise NotImplementedError("student TODO: maybe_normalize_advantages")
+    if enabled:
+        mean = advantages.mean(dim=1,keepdim=True)
+        std = advantages.std(dim =1,unbiased=False,keepdim=True)
+        return (advantages - mean) / (std + eps)
+    else:
+        return advantages
 
 
 def maybe_update_warmup_lr(optimizer: torch.optim.Optimizer, base_lr: float, step: int, warmup_steps: int) -> None:
