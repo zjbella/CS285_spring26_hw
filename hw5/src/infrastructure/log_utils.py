@@ -132,7 +132,7 @@ def setup_wandb(
     name=None,
     run_id=None,
     resume=None,
-    mode='online',
+    mode='offline',
     config=None,
 ):
     """Set up Weights & Biases for logging."""
